@@ -1,44 +1,52 @@
-Introduction
+# Introduction
 
 This documentation provides an overview of a middleware Python script designed to automate the retrieval and processing of guest data from the MyPlace Connect API and push this data into Salesforce Marketing Cloud (SFMC). The script retrieves guest entries from the previous day, formats the data to match the schema required by SFMC, and pushes the data into the specified SFMC Data Extension.
 
-Overview
+# Overview
 
-The middleware script performs the following tasks:
+### The middleware script performs the following tasks:
             
 Data Retrieval: Connects to the MyPlace Connect API to retrieve guest data.
 Data Filtering: Filters the retrieved data to include only entries from the previous day.
 Data Formatting: Formats the data to match the schema required by the SFMC Data Extension.
 Data Upload: Pushes the filtered and formatted data into the specified SFMC Data Extension.
 
-Script Components
+# Script Components
 
-Environment Setup
+### Environment Setup
+
 The script uses environment variables to securely manage sensitive information such as API keys and credentials. Ensure you have a .env file in the root directory of your project with the following variables:
 
+```
 SFMC_CLIENT_ID=your_sfmc_client_id
 SFMC_CLIENT_SECRET=your_sfmc_client_secret
 SFMC_SUBDOMAIN=your_sfmc_subdomain
 SFMC_DATA_EXTENSION_KEY=your_data_extension_key
 MYPLACE_API_KEY=your_api_key_here
+```
 
-Dependencies
+### Dependencies
+
 Install the required libraries using pip:
 
-pip install requests python-dotenv
+```pip install requests python-dotenv```
 
-Main Script
+# Main Script
+
 The main script comprises several functions, each responsible for a specific task:
 
-Import Libraries and Load Environment Variables
+### Import Libraries and Load Environment Variables
 
+```
 import requests
 from datetime import datetime, timedelta
 import json
 from dotenv import load_dotenv
 import os
+```
+### Load environment variables from .env file
 
-# Load environment variables from .env file
+```
 load_dotenv()
 
 Configuration Variables
@@ -48,22 +56,28 @@ sfmc_client_secret = os.getenv('SFMC_CLIENT_SECRET')
 sfmc_subdomain = os.getenv('SFMC_SUBDOMAIN')
 sfmc_data_extension_key = os.getenv('SFMC_DATA_EXTENSION_KEY')
 myplace_api_key = os.getenv('MYPLACE_API_KEY')
+```
 
-Helper Functions
+### Helper Functions
 
+```
 Get Yesterday's Date:
 def get_yesterday_date():
     yesterday = datetime.now() - timedelta(1)
     return yesterday.strftime('%Y-%m-%d')
-    
+```
+
 Parse Timestamp:
 
+```
 def parse_timestamp(timestamp):
     timestamp = timestamp.split(' GMT')[0]  # Remove the extra part
     return datetime.strptime(timestamp, '%a %b %d %Y %H:%M:%S')
-    
+```
+
 Format Last Seen Date:
 
+```
 def format_last_seen(last_seen):
     try:
         last_seen_date = datetime.strptime(last_seen, '%d/%m/%Y, %H:%M')
@@ -83,11 +97,12 @@ def get_all_guests():
     page = 1
     per_page = 10
     total_pages = 1
+```
 
-Data Retrieval
+### Data Retrieval
 
 Get All Guests:
-
+```
     while page <= total_pages:
         params = {'page': page, 'per_page': per_page}
         response = requests.get(base_url, headers=headers, params=params)
@@ -111,11 +126,13 @@ Get All Guests:
         page += 1
 
     return all_guests
+```
 
-Authentication and Data Upload
+### Authentication and Data Upload
 
 Get SFMC Access Token:
 
+```
 def get_sfmc_access_token():
     auth_url = f'https://{sfmc_subdomain}.auth.marketingcloudapis.com/v2/token'
     payload = {
@@ -126,12 +143,13 @@ def get_sfmc_access_token():
     response = requests.post(auth_url, json=payload)
     response.raise_for_status()
     return response.json().get('access_token')
-    
-Main Function
+```
+   
+# Main Function
 
 Main Job Function:
 
-
+```
     # Retrieve all guests
     all_guests = get_all_guests()
 
@@ -190,6 +208,6 @@ Main Job Function:
         push_to_sfmc(sfmc_data, access_token)
     else:
         print("No data to push to SFMC")
-
+```
 
 
